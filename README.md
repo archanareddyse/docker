@@ -1,42 +1,31 @@
-# Docker Getting Started Tutorial
-
-This tutorial has been written with the intent of helping folks get up and running
-with containers and is designed to work with Docker Desktop. While not going too much 
-into depth, it covers the following topics:
-
-- Running your first container
-- Building containers
-- Learning what containers are running and removing them
-- Using volumes to persist data
-- Using bind mounts to support development
-- Using container networking to support multi-container applications
-- Using Docker Compose to simplify the definition and sharing of applications
-- Using image layer caching to speed up builds and reduce push/pull size
-- Using multi-stage builds to separate build-time and runtime dependencies
-
-## Getting Started
-
-If you wish to run the tutorial, you can use the following command after installing Docker Desktop:
-
-```bash
-docker run -d -p 80:80 docker/getting-started
-```
-
-Once it has started, you can open your browser to [http://localhost](http://localhost).
-
-## Development
-
-This project has a `docker-compose.yml` file, which will start the mkdocs application on your
-local machine and help you see changes instantly.
-
-```bash
-docker-compose up
-```
-
-## Contributing
-
-If you find typos or other issues with the tutorial, feel free to create a PR and suggest fixes!
-
-If you have ideas on how to make the tutorial better or new content, please open an issue first before working on your idea. While we love input, we want to keep the tutorial  scoped to newcomers.
-As such, we may reject ideas for more advanced requests and don't want you to lose any work you might
-have done. So, ask first and we'll gladly hear your thoughts!
+1.Create the network.
+ $ docker network create todo-app
+ 2.Start a MySQL container and attach it to the network. We’re also going to define a few environment variables that the database will use to initialize the database (see the “Environment Variables” section in the MySQL Docker Hub listing).
+  PS> docker run -d `
+     --network todo-app --network-alias mysql `
+     -v todo-mysql-data:/var/lib/mysql `
+     -e MYSQL_ROOT_PASSWORD=secret `
+     -e MYSQL_DATABASE=todos `
+     mysql:5.7
+3. To confirm we have the database up and running, connect to the database and verify it connects.
+ docker exec -it <mysql-container-id> mysql -u root -p
+ mysql>SHOW DATABASES;
+ mysql>exit
+Run your app with MySQL🔗
+1.Note: for MySQL versions 8.0 and higher, make sure to include the following commands in mysql.
+ $ ALTER USER 'root' IDENTIFIED WITH mysql_native_password BY 'secret';
+ $ flush privileges;
+ PS> docker run -dp 3000:3000 `
+   -w /app -v "$(pwd):/app" `
+   --network todo-app `
+   -e MYSQL_HOST=mysql `
+   -e MYSQL_USER=root `
+   -e MYSQL_PASSWORD=secret `
+   -e MYSQL_DB=todos `
+   node:12-alpine `
+   sh -c "yarn install && yarn run dev"
+4.Open the app in your browser and add a few items to your todo list.
+5.Connect to the mysql database and prove that the items are being written to the database. Remember, the password is secret.
+$ docker exec -it <mysql-container-id> mysql -p todos
+And in the mysql shell, run the following:
+mysql> select * from todo_items;
